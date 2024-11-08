@@ -7,8 +7,9 @@
 //
 
 import UIKit
-import AppItFramework_IdFace
-import CredencialLogic
+import IDentityLiteSDK
+import SelfieCaptureLite
+//import AppItFramework_IdFace
 
 class SelfieVC: BaseIdMissionVC {
     
@@ -58,7 +59,7 @@ class SelfieVC: BaseIdMissionVC {
     
     private func setupView() {
         viewImg.dropShadow()
-        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) ) {
+        if ( "VID".elementsEqual(Constantes.CREDENCIAL_INE) ) {
             lbTitleOne.text = getStringForKey(key: Constantes.INE_FRONTAL)
             lbTitleTwo.text = getStringForKey(key: Constantes.INE_POSTERIOR)
             lbTitleThree.text = getStringForKey(key: Constantes.SELFIE)
@@ -95,6 +96,23 @@ class SelfieVC: BaseIdMissionVC {
         self.present(alert, animated: true, completion: nil)
     }
     
+    private func takeSelfie() {
+        
+        IDentitySDK.liveFaceCheck(from: self) { result in
+            self.view.hideDotLoadingIndicator()
+            switch result {
+                
+            case .success(let response):
+                self.lbCapture.isHidden = true
+                self.imgSelfie.image = response.selfie.image
+                self.imgSelfie.contentMode = UIView.ContentMode.scaleAspectFit
+            case .failure(let error):
+                print("Error -> \(error.localizedDescription)")
+            }
+        }
+        
+    }
+    
     @IBAction func actionCapture(_ sender: UIButton) {
         
         if AVCaptureDevice.authorizationStatus(for: .video) == .denied {
@@ -105,7 +123,8 @@ class SelfieVC: BaseIdMissionVC {
             let FaceDetect_Dictionary = [
                 "fd_enable_passive_face_detection":"Y"] as NSMutableDictionary
             
-            AppItSDK.detectFace(self, faceCaptureConfig: FaceDetect_Dictionary)
+            takeSelfie()
+            //AppItSDK.detectFace(self, faceCaptureConfig: FaceDetect_Dictionary)
             
         }
     }
@@ -140,7 +159,7 @@ class SelfieVC: BaseIdMissionVC {
     private func validateElements() -> Bool {
         
         var flag = true
-        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.PASAPORTE) ) {
+        if ( "VID".elementsEqual(Constantes.PASAPORTE) ) {
             if ( SelfieVC.selfieImage == nil || FrontVC.imageFront == nil) {
                 flag = false
                 showErrorAlert(error: getStringForKey(key: Constantes.VERIFICAR_IMAGENES))
@@ -194,8 +213,8 @@ class SelfieVC: BaseIdMissionVC {
             uniqueCustNumber = uniqueCustNumber[index..<uniqueCustNumber.count]
         }
         print("uniqueCustomer -> \(uniqueCustNumber)")
-        let idType = TypeDocumentVC.selected_document
-        let countrytype = TypeDocumentVC.selected_country //CountryCode
+        let idType = "VID"
+        let countrytype = "MEX" //CountryCode
         let stateType = ""   //StateCode
         
         let additionalJSONDict = ["Service_ID": serviceID,
@@ -216,7 +235,7 @@ class SelfieVC: BaseIdMissionVC {
         
         self.view.showDotLoadingIndicator(messsage: getStringForKey(key: Constantes.ESPERE))
         
-        AppItSDK.genericApiCall(self, genericDataDictionary: Enroll_ID_Selfie_Dict)
+        //AppItSDK.genericApiCall(self, genericDataDictionary: Enroll_ID_Selfie_Dict)
         
         //Para pasar directo a la pantalla, descomentar el siguiente código
         
@@ -236,7 +255,7 @@ class SelfieVC: BaseIdMissionVC {
         
         if segue.identifier == Constantes.TO_DATA_USER {
             
-            let controller = segue.destination as! PersonalInfoVC
+            /*let controller = segue.destination as! PersonalInfoVC
             controller.apellido_materno = last_name_2
             controller.name = name
             controller.apellidos = last_name
@@ -244,12 +263,12 @@ class SelfieVC: BaseIdMissionVC {
             controller.curp = curp
             controller.vigencia = validity
             controller.numeroDocumento = ine_number
-            controller.date_of_birth = date_of_birth
+            controller.date_of_birth = date_of_birth*/
         }
     }
     
 }
-extension SelfieVC: AppItSDKResponse {
+/*extension SelfieVC: AppItSDKResponse {
     
     func faceDetectionResponse(_ result: NSMutableDictionary) {
         print("== faceDetectionResponse() ==")
@@ -360,10 +379,6 @@ extension SelfieVC: AppItSDKResponse {
                     if (resultDictionary[Constantes.REQUEST_ID] != nil) {
                         onboarding_id = resultDictionary[Constantes.REQUEST_ID] as! String
                     }
-                    RegisterDataClientVC.valuesForRegister.updateValue(onboarding_id, forKey: RequestConstants.ONBOARD_ID)
-                    RegisterDataClientVC.valuesForRegister.updateValue(form_id, forKey: RequestConstants.FORM_ID)
-                    RegisterDataClientVC.valuesForRegister.updateValue(form_key, forKey: RequestConstants.FORM_KEY)
-                    RegisterDataClientVC.valuesForRegister.updateValue(nationality, forKey: RequestConstants.BIRTH_PLACE)
                     
                     print("== Datos extraídos por IdMission ==")
                     print("name -> \(name)")
@@ -383,10 +398,10 @@ extension SelfieVC: AppItSDKResponse {
                         showAlert_view(title: getStringForKey(key: Constantes.IMPORTANTE), message: getStringForKey(key: Constantes.ERROR_DATOS_DOCUMENTO))
                     } else {
                         
-                        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) && curp.isEmpty ) {
+                        if ( "VID".elementsEqual(Constantes.CREDENCIAL_INE) && curp.isEmpty ) {
                             showAlert_view(title: getStringForKey(key: Constantes.IMPORTANTE), message: getStringForKey(key: Constantes.ERROR_DATOS_DOCUMENTO))
                         } else {
-                            self.performSegue(withIdentifier: Constantes.TO_DATA_USER, sender: nil)
+                            //self.performSegue(withIdentifier: Constantes.TO_DATA_USER, sender: nil)
                         }
                         
                     }
@@ -468,4 +483,4 @@ extension SelfieVC: AppItSDKResponse {
         
     }
     
-}
+}*/

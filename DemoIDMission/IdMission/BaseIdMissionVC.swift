@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import SVProgressHUD
 
 class BaseIdMissionVC: UIViewController {
 
@@ -41,13 +40,14 @@ class BaseIdMissionVC: UIViewController {
         imageView.center = view.center
         //view.addSubview(imageView)
         //self.view.sendSubviewToBack(imageView)
-        view.backgroundColor = UIColor(hex: "000000")
+        view.backgroundColor = .white
     }
     
     func showErrorAlert(error:String){
-        
-        SVProgressHUD.showError(withStatus: error)
-        SVProgressHUD.dismiss(withDelay: 3)
+        let alert = UIAlertController(title: "Error", message: error, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { (alert) -> Void in
+        }))
+        self.present(alert, animated: true)
     }
 
 }

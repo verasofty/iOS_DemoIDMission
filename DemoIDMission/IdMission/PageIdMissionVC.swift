@@ -40,7 +40,7 @@ class PageIdMissionVC: UIPageViewController {
         let secondController = storyboard.instantiateViewController(withIdentifier: BACK)
         let thirdController = storyboard.instantiateViewController(withIdentifier: SELFIE)
         
-        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.PASAPORTE) ) {
+        if ( ViewController.selected_document.elementsEqual(Constantes.PASAPORTE) ) {
             myControllers.append(firstController)
             myControllers.append(thirdController)
         } else {

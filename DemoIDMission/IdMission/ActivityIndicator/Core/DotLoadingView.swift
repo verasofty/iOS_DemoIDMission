@@ -12,6 +12,7 @@ import SwiftGifOrigin
 public final class DotLoadingView: UIView {
 
     @IBOutlet weak var dotLoadingIndicator: UIImageView!
+    
     @IBOutlet weak var dotLoadingMessageLabel: UILabel!
 
     public func startAnimating() {

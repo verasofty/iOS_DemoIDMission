@@ -7,13 +7,19 @@
 //
 
 import UIKit
-import AppItFramework_IdFace
+//import AppItFramework_IdFace
+import IDentityLiteSDK
+import IDCaptureLite
+import SelfieCaptureLite
 
 class FrontVC: BaseIdMissionVC {
+    
+    //MARK: - IBOutlets
     
     @IBOutlet weak var btnCapture: UIButton!
     @IBOutlet weak var btnNext: UIButton!
     @IBOutlet weak var imgFront: UIImageView!
+    @IBOutlet weak var imgBack: UIImageView!
     @IBOutlet weak var viewImg: UIView!
     @IBOutlet weak var lbTitleOne: UILabel!
     @IBOutlet weak var lbTitleTwo: UILabel!
@@ -21,6 +27,8 @@ class FrontVC: BaseIdMissionVC {
     @IBOutlet weak var lsMiddle: NSLayoutConstraint!
     @IBOutlet weak var lsTitle: NSLayoutConstraint!
     @IBOutlet weak var lbCapture: UILabel!
+    
+    //MARK: - Variables & Constants
     
     var pageViewController: UIPageViewController!
     public static var imageFront : UIImage!
@@ -32,7 +40,7 @@ class FrontVC: BaseIdMissionVC {
     var merchantID = "38037"
     let productID = "920"
     
-    
+    var resultado : CustomerEnrollResult!
     /*let loginId = "ev_integ_57661"
      let password = "IDmi#661$"
      let merchantID = "38021"
@@ -69,7 +77,7 @@ class FrontVC: BaseIdMissionVC {
     
     private func getCredentialesIDMission () {
         
-        if ( LogicUtils.isSandbox() ) {
+        if ( false ) {
             print("== CREDENCIALES EN DESARROLLO ==")
             loginId = "ev_integ_56277"
             data = "IDmi#277$"
@@ -89,8 +97,8 @@ class FrontVC: BaseIdMissionVC {
         
         print("== setupView() ==")
         viewImg.dropShadow()
-        
-        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) ) {
+        btnNext.isEnabled = false
+        if ( ViewController.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) ) {
             lbTitleOne.text = getStringForKey(key: Constantes.INE_FRONTAL)
             lbTitleTwo.text = getStringForKey(key: Constantes.INE_POSTERIOR)
             lbTitleThree.text = getStringForKey(key: Constantes.SELFIE)
@@ -107,46 +115,60 @@ class FrontVC: BaseIdMissionVC {
     private func initSDK() {
         
         self.view.showDotLoadingIndicator(messsage: getStringForKey(key: Constantes.ESPERE))
-        AppItSDK.initializeAppItSDK(self, url: url, loginId: loginId, password: data, merchantID: merchantID, productID: productID, productName: productName, language: getStringForKey(key: Constantes.LANGUAJE_IDMISSION), enableDebug: false, enableGPS: false)
         
-        let labels : NSMutableDictionary = [
-            "id_capture_instruction" : getStringForKey(key: Constantes.MENSAJE_PREVIO_DOCUMENTO),
-            "light": getStringForKey(key: Constantes.LIGHT),
-            "focus": getStringForKey(key: Constantes.FOCUS),
-            "align_document_img_capture": getStringForKey(key: Constantes.ALIGN_DOCUMENT_IMG_CAPTURE),
-            "subject_is_too_dark_img_capture": getStringForKey(key: Constantes.SUBJECT_IS_TOO_DARK),
-            "out_of_focus_img_capture": getStringForKey(key: Constantes.OUT_OF_FOCUS),
-            "too_much_glare_img_capture": getStringForKey(key: Constantes.TOO_MUCH_GLARE),
-            "page_title_image_capture": getStringForKey(key: Constantes.PAGE_TITLE_IMAGE_CAPTURE),
-            "capturing_id_scanbarcode":getStringForKey(key: Constantes.CAPTURING_ID_SAMBARCODE),
-            "capturing_id_scanbarcode_msg":getStringForKey(key: Constantes.CAPTURING_ID_SCANBARCODE_MSG),
-            "glare":getStringForKey(key: Constantes.GLARE),
-            "align_id_and_mrz_inside_rectangle":getStringForKey(key: Constantes.ALIGN_ID_AND_MRZ_INSIDE_RCTANGLE),
-            "align_barcode_inside_rectangle": getStringForKey(key: Constantes.ALIGN_BARCODE_INSIDE_RECTANGLE),
-            "mrz_not_detected": getStringForKey(key: Constantes.MRZ_NOT_DETECTED),
-            "mrz_detected_not_valid": getStringForKey(key: Constantes.MRZ_DETECTED_NOT_VALID),
-            "barcode_mrz_not_found": getStringForKey(key: Constantes.BARCODE_MRZ_NOT_FOUND),
-            "barcode_detected_error_message":getStringForKey(key: Constantes.BARCODE_DETECTED_ERROR_MESSAGE),
-            "capturing_id_scanbarcode_pdf_417_msg":getStringForKey(key: Constantes.CAPTURING_ID_SCANBARCODE_PDF),
-            "capturing_id_scanbarcode_pdf417_msg":getStringForKey(key: Constantes.CAPTURING_ID_BARCODE_PDF417),
-            "move_id_closer":getStringForKey(key: Constantes.MOVE_ID_CLOSER),
-            "move_id_away":getStringForKey(key: Constantes.MOVE_ID_WAY),
-            "align_document_inside_rectangle":getStringForKey(key: Constantes.ALIGN_DOCUMENT_INSIDE_RECTANGLE),
-            "id_capture_preview_header":getStringForKey(key: Constantes.ID_CAPTURE_PREVIEW_HEADER),
-            "id_capture_preview_message":getStringForKey(key: Constantes.ID_CAPTURE_PREVIEW_MESSAGE),
-            "barcode_error_message":getStringForKey(key: Constantes.BARCODE_ERROR_MESSAGE),
-            "mrz_error_message":getStringForKey(key: Constantes.MRZ_ERROR_MESSAGE),
-            "barcode_mrz_error_message":getStringForKey(key: Constantes.BARCODE_MRZ_ERROR_MESSAGE),
-            "id_capture_success_message": getStringForKey(key: Constantes.ID_CAPTURE_SUCCESS_MESSAGE),
-            "id_capture_instruction_continue": getStringForKey(key: Constantes.ID_CAPTURE_INSTRUCTION_CONTINUE)
-        ]
-        let captureFront : NSMutableDictionary = [
-            "labels" : labels
-        ]
-        let dictParams:NSMutableDictionary? = [
-            "id_capture_front" : captureFront,
-            "id_capture_back" : captureFront
-        ]
+        IDentitySDK.initializeApiBaseUrl = "https://kyc.idmission.com/"
+        IDentitySDK.apiBaseUrl = "https://api.idmission.com/"
+        
+        IDentitySDK.initializeSDK(loginId: loginId, password: data, merchantId: merchantID) { error in
+            
+            if let error = error {
+                print("Error al inicializar IDMIssion -> \(error.localizedDescription)")
+            } else {
+                print("=== Inicialización correcta ===")
+            }
+            self.view.hideDotLoadingIndicator()
+        }
+        
+        /*AppItSDK.initializeAppItSDK(self, url: url, loginId: loginId, password: data, merchantID: merchantID, productID: productID, productName: productName, language: "es", enableDebug: false, enableGPS: false)
+         
+         let labels : NSMutableDictionary = [
+         "id_capture_instruction" : getStringForKey(key: Constantes.MENSAJE_PREVIO_DOCUMENTO),
+         "light": getStringForKey(key: Constantes.LIGHT),
+         "focus": getStringForKey(key: Constantes.FOCUS),
+         "align_document_img_capture": getStringForKey(key: Constantes.ALIGN_DOCUMENT_IMG_CAPTURE),
+         "subject_is_too_dark_img_capture": getStringForKey(key: Constantes.SUBJECT_IS_TOO_DARK),
+         "out_of_focus_img_capture": getStringForKey(key: Constantes.OUT_OF_FOCUS),
+         "too_much_glare_img_capture": getStringForKey(key: Constantes.TOO_MUCH_GLARE),
+         "page_title_image_capture": getStringForKey(key: Constantes.PAGE_TITLE_IMAGE_CAPTURE),
+         "capturing_id_scanbarcode":getStringForKey(key: Constantes.CAPTURING_ID_SAMBARCODE),
+         "capturing_id_scanbarcode_msg":getStringForKey(key: Constantes.CAPTURING_ID_SCANBARCODE_MSG),
+         "glare":getStringForKey(key: Constantes.GLARE),
+         "align_id_and_mrz_inside_rectangle":getStringForKey(key: Constantes.ALIGN_ID_AND_MRZ_INSIDE_RCTANGLE),
+         "align_barcode_inside_rectangle": getStringForKey(key: Constantes.ALIGN_BARCODE_INSIDE_RECTANGLE),
+         "mrz_not_detected": getStringForKey(key: Constantes.MRZ_NOT_DETECTED),
+         "mrz_detected_not_valid": getStringForKey(key: Constantes.MRZ_DETECTED_NOT_VALID),
+         "barcode_mrz_not_found": getStringForKey(key: Constantes.BARCODE_MRZ_NOT_FOUND),
+         "barcode_detected_error_message":getStringForKey(key: Constantes.BARCODE_DETECTED_ERROR_MESSAGE),
+         "capturing_id_scanbarcode_pdf_417_msg":getStringForKey(key: Constantes.CAPTURING_ID_SCANBARCODE_PDF),
+         "capturing_id_scanbarcode_pdf417_msg":getStringForKey(key: Constantes.CAPTURING_ID_BARCODE_PDF417),
+         "move_id_closer":getStringForKey(key: Constantes.MOVE_ID_CLOSER),
+         "move_id_away":getStringForKey(key: Constantes.MOVE_ID_WAY),
+         "align_document_inside_rectangle":getStringForKey(key: Constantes.ALIGN_DOCUMENT_INSIDE_RECTANGLE),
+         "id_capture_preview_header":getStringForKey(key: Constantes.ID_CAPTURE_PREVIEW_HEADER),
+         "id_capture_preview_message":getStringForKey(key: Constantes.ID_CAPTURE_PREVIEW_MESSAGE),
+         "barcode_error_message":getStringForKey(key: Constantes.BARCODE_ERROR_MESSAGE),
+         "mrz_error_message":getStringForKey(key: Constantes.MRZ_ERROR_MESSAGE),
+         "barcode_mrz_error_message":getStringForKey(key: Constantes.BARCODE_MRZ_ERROR_MESSAGE),
+         "id_capture_success_message": getStringForKey(key: Constantes.ID_CAPTURE_SUCCESS_MESSAGE),
+         "id_capture_instruction_continue": getStringForKey(key: Constantes.ID_CAPTURE_INSTRUCTION_CONTINUE)
+         ]
+         let captureFront : NSMutableDictionary = [
+         "labels" : labels
+         ]
+         let dictParams:NSMutableDictionary? = [
+         "id_capture_front" : captureFront,
+         "id_capture_back" : captureFront
+         ]*/
         
         //AppItSDK.customizeUserInterface(dictParams!)
     }
@@ -155,26 +177,77 @@ class FrontVC: BaseIdMissionVC {
         let alert = UIAlertController(title: getStringForKey(key: Constantes.PERMISSION_DENIED), message: getStringForKey(key: Constantes.MESSAGE_PERMISSION_CAMERA), preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: { action in
             switch action.style{
-                case .default:
+            case .default:
                 print("default")
                 
-                
-                case .cancel:
+            case .cancel:
                 print("cancel")
                 
-                case .destructive:
+            case .destructive:
                 print("destructive")
             }
         }))
         
         alert.addAction(UIAlertAction(title: getStringForKey(key: Constantes.GO_TO_SETTINGS), style: .default, handler: { action in
             if let settingsUrl = URL(string: UIApplication.openSettingsURLString) {
-               UIApplication.shared.open(settingsUrl)
-             }
+                UIApplication.shared.open(settingsUrl)
+            }
         }))
         
         self.present(alert, animated: true, completion: nil)
     }
+    
+    private func sendImagesToService() {
+        print("== FrontVC.sendImagesToService() ==")
+        
+        let options = AdditionalCustomerWFlagCommonDataV3()
+        //let personalData = PersonalCustomerCommonRequestDataV3(uniqueNumber: "9879879")
+        let personalData = PersonalCustomerCommonRequestEnrollDataV3(uniqueNumber: "89823923")
+        
+        IDentitySDK.idValidationAndCustomerEnroll(from: self, personalData: personalData, options: options, captureBack: .yes) { result in
+            self.view.hideDotLoadingIndicator()
+            switch result {
+                
+            case .success(let customerEnrollResult):
+                
+                self.resultado = customerEnrollResult
+                self.btnNext.isEnabled = true
+            
+            case .failure(let error):
+                print("Error -> \(error.localizedDescription)")
+            }
+        }
+        
+        
+        /*IDentitySDK.idValidation(from: self, options: options, idType: ViewController.selected_document, idCountry: ViewController.selected_country, idState: Constantes.EMPTY_STRING) { result in
+         self.view.hideDotLoadingIndicator()
+         switch result {
+         
+         case .success(let response):
+         
+         self.imgFront.image = response.front.image
+         self.imgFront.contentMode = UIView.ContentMode.scaleAspectFit
+         
+         if let _ = response.back {
+         if let backImage = response.back?.image {
+         self.imgBack.image = backImage
+         self.imgBack.contentMode = UIView.ContentMode.scaleAspectFit
+         }
+         }
+         
+         print("== Captura exitosa ==")
+         print("response -> \(response)")
+         
+         case .failure(let error):
+         print("Error -> \(error.localizedDescription)")
+         }
+         
+         }*/
+        
+        
+    }
+    
+    //MARK: - Actions
     
     @IBAction func actionCapture(_ sender: UIButton) {
         print("== FrontVC.actionCapture() ==")
@@ -182,18 +255,19 @@ class FrontVC: BaseIdMissionVC {
         if AVCaptureDevice.authorizationStatus(for: .video) == .denied {
             showAlertNotPermission()
         } else {
-            print("selected_document -> \(TypeDocumentVC.selected_document)")
-            print("selected_country -> \(TypeDocumentVC.selected_country)")
+            print("selected_document -> \(ViewController.selected_document)")
+            print("selected_country -> \(ViewController.selected_country)")
             
-            let uiConfigDictionary = ["id_type": TypeDocumentVC.selected_document,
+            let uiConfigDictionary = ["id_type": ViewController.selected_document,
                                       "id_show_instruction":"Y",
-                                      "country_code": TypeDocumentVC.selected_country] as NSMutableDictionary
+                                      "country_code": ViewController.selected_country] as NSMutableDictionary
             
             self.view.showDotLoadingIndicator(messsage: getStringForKey(key: Constantes.ESPERE))
             
             (UIApplication.shared.delegate as! AppDelegate).supportedOrientation = .all
             
-            AppItSDK.captureFrontImage(self, additionalDictionary: [:], uiConfigDictionary: uiConfigDictionary)
+            sendImagesToService()
+            //AppItSDK.captureFrontImage(self, additionalDictionary: [:], uiConfigDictionary: uiConfigDictionary)
         }
         
     }
@@ -210,62 +284,87 @@ class FrontVC: BaseIdMissionVC {
     @IBAction func actionNext(_ sender: UIButton) {
         print("== next() ==")
         
-        self.pageViewController.goToNextPage()
-        
-    }
-    
-}
-extension FrontVC : AppItSDKResponse {
-    
-    //Initialize SDK Response
-    func initializeSDKResponse(_ result: NSMutableDictionary!) {
-        
-        print("initializeSDKResponse", result ?? "default value" )
-        self.view.hideDotLoadingIndicator()
-        
-        guard let responseDict = result else {
-            return
-        }
-        
-        if let statusMessage = responseDict["statusMessage"] as? String, statusMessage == "invalid_request_param",
-           let statusCode = responseDict["statusCode"] as? String, statusCode == "7" {
-            
-            guard let result = responseDict["Result"] as? [String:String] else { return}
-            let Status_Message = result["Status_Message"]
-            
-            if Status_Message != "", Status_Message != nil  {
-                self.showAlert_view(title: "Alert!!", message: "Error:".appending(Status_Message!))
-            } else {
-                self.showAlert_view(title: "Alert!!", message: "Initialization failed.\nPlease try again.")
+        self.view.showDotLoadingIndicator(messsage: "Extrayendo datos...")
+        resultado.submit { result in
+            self.view.hideDotLoadingIndicator()
+            switch result {
+                
+            case .success(let response):
+                
+                print("== Obtención de datos ==")
+                
+                //Imagen frontal del documento
+                let documentoFrontal = response.responseCustomerData?.extractedIdData!.idProcessImageFront
+                let data = Data(base64Encoded: documentoFrontal!)
+                self.imgFront.image = UIImage(data: data!)
+                self.imgFront.contentMode = UIView.ContentMode.scaleAspectFit
+                
+                //Imagen trasera del documento
+                let documentoTrasero = response.responseCustomerData?.extractedIdData!.idProcessImageBack
+                let data2 = Data(base64Encoded: documentoTrasero!)
+                self.imgBack.image = UIImage(data: data2!)
+                self.imgBack.contentMode = UIView.ContentMode.scaleAspectFit
+                
+            case .failure(let error):
+                print("Error -> \(error.localizedDescription)")
             }
-        } else if let statusMessage = responseDict["statusMessage"] as? String, statusMessage  != "success_msg", statusMessage  != "Success",
-                  let statusCode = responseDict["statusCode"] as? String, statusCode != "0" {
-            self.showAlert_view(title: "Alert!!", message: "Initialization failed.\nPlease try again.")
-        } else {
-            // Initialization SuccessFull
-            //self.performSegue(withIdentifier: "toIdMission", sender: nil)
         }
+        //self.pageViewController.goToNextPage()
+        
     }
     
-    //Id Capture Response
-    func captureImageResponse(_ result: NSMutableDictionary) {
-        print("CaptureImageResponse")
-        self.view.hideDotLoadingIndicator()
-        (UIApplication.shared.delegate as! AppDelegate).supportedOrientation = .portrait
-        
-        if result["StatusCode"] as? String == "2" {
-            
-        } else if result["StatusCode"] as? String == "1" {
-            
-            showAlert_view(title: "Alert!!", message: "Please Initialize SDK")
-            
-        } else if let idFront = result["FRONT"] as? String , result["StatusCode"] as? String == "0"{
-            let data = Data(base64Encoded: idFront)
-            lbCapture.isHidden = true
-            imgFront.contentMode = UIView.ContentMode.scaleAspectFit
-            imgFront.image =  UIImage(data: data!) ?? UIImage(named: "User.png")!
-            FrontVC.imageFront = imgFront.image
-        }
-    }
 }
+/*extension FrontVC : AppItSDKResponse {
+ 
+ //Initialize SDK Response
+ func initializeSDKResponse(_ result: NSMutableDictionary!) {
+ 
+ print("initializeSDKResponse", result ?? "default value" )
+ self.view.hideDotLoadingIndicator()
+ 
+ guard let responseDict = result else {
+ return
+ }
+ 
+ if let statusMessage = responseDict["statusMessage"] as? String, statusMessage == "invalid_request_param",
+ let statusCode = responseDict["statusCode"] as? String, statusCode == "7" {
+ 
+ guard let result = responseDict["Result"] as? [String:String] else { return}
+ let Status_Message = result["Status_Message"]
+ 
+ if Status_Message != "", Status_Message != nil  {
+ self.showAlert_view(title: "Alert!!", message: "Error:".appending(Status_Message!))
+ } else {
+ self.showAlert_view(title: "Alert!!", message: "Initialization failed.\nPlease try again.")
+ }
+ } else if let statusMessage = responseDict["statusMessage"] as? String, statusMessage  != "success_msg", statusMessage  != "Success",
+ let statusCode = responseDict["statusCode"] as? String, statusCode != "0" {
+ self.showAlert_view(title: "Alert!!", message: "Initialization failed.\nPlease try again.")
+ } else {
+ // Initialization SuccessFull
+ //self.performSegue(withIdentifier: "toIdMission", sender: nil)
+ }
+ }
+ 
+ //Id Capture Response
+ func captureImageResponse(_ result: NSMutableDictionary) {
+ print("CaptureImageResponse")
+ self.view.hideDotLoadingIndicator()
+ (UIApplication.shared.delegate as! AppDelegate).supportedOrientation = .portrait
+ 
+ if result["StatusCode"] as? String == "2" {
+ 
+ } else if result["StatusCode"] as? String == "1" {
+ 
+ showAlert_view(title: "Alert!!", message: "Please Initialize SDK")
+ 
+ } else if let idFront = result["FRONT"] as? String , result["StatusCode"] as? String == "0"{
+ let data = Data(base64Encoded: idFront)
+ lbCapture.isHidden = true
+ imgFront.contentMode = UIView.ContentMode.scaleAspectFit
+ imgFront.image =  UIImage(data: data!) ?? UIImage(named: "User.png")!
+ FrontVC.imageFront = imgFront.image
+ }
+ }
+ }*/
 

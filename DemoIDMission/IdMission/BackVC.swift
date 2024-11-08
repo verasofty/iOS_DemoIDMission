@@ -7,7 +7,8 @@
 //
 
 import UIKit
-import AppItFramework_IdFace
+//import AppItFramework_IdFace
+import IDentityLiteSDK
 
 class BackVC: BaseIdMissionVC {
     
@@ -36,7 +37,7 @@ class BackVC: BaseIdMissionVC {
     
     private func setupView() {
         viewImg.dropShadow()
-        if ( TypeDocumentVC.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) ) {
+        if ( ViewController.selected_document.elementsEqual(Constantes.CREDENCIAL_INE) ) {
             lbTitleOne.text = getStringForKey(key: Constantes.INE_FRONTAL)
             lbTitleTwo.text = getStringForKey(key: Constantes.INE_POSTERIOR)
             lbTitleThree.text = getStringForKey(key: Constantes.SELFIE)
@@ -84,13 +85,13 @@ class BackVC: BaseIdMissionVC {
             idBackUIDictionary = ["id_capture_back": labelDictionary] as NSMutableDictionary
             let uiConfigDictionary = ["id_type": "VID",
                                       "id_show_instruction":"Y",
-                                      "country_code": TypeDocumentVC.selected_country] as NSMutableDictionary
+                                      "country_code": ViewController.selected_country] as NSMutableDictionary
             
             self.view.showDotLoadingIndicator(messsage: getStringForKey(key: Constantes.ESPERE))
             
             (UIApplication.shared.delegate as! AppDelegate).supportedOrientation = .all
-            AppItSDK.customizeUserInterface(idBackUIDictionary)
-            AppItSDK.captureBackImage(self, additionalDictionary: ["":""] as NSMutableDictionary, uiConfigDictionary: uiConfigDictionary)
+            //AppItSDK.customizeUserInterface(idBackUIDictionary)
+            //AppItSDK.captureBackImage(self, additionalDictionary: ["":""] as NSMutableDictionary, uiConfigDictionary: uiConfigDictionary)
             
         }
     }
@@ -104,7 +105,7 @@ class BackVC: BaseIdMissionVC {
     }
     
 }
-extension BackVC : AppItSDKResponse {
+/*extension BackVC : AppItSDKResponse {
     
     func captureImageResponse(_ result: NSMutableDictionary) {
         print("CaptureImageResponse")
@@ -128,4 +129,4 @@ extension BackVC : AppItSDKResponse {
         
     }
     
-}
+}*/
