@@ -4,6 +4,17 @@
 
 ## User settings
 xcuserdata/
+.DS_Store
+/.build
+/Packages
+xcuserdata/
+/Pods
+Podfile.lock
+Podfile.save
+/DemoIDMission.xcworkspace/xcuserdata/
+DemoIDMission.xcworkspace
+AppItFramework_IdFace.framework/
+IDentityLiteSDK.xcframework/
 
 ## Obj-C/Swift specific
 *.hmap
