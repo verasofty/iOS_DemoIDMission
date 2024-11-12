@@ -134,7 +134,7 @@
 				};
 			};
 			buildConfigurationList = AC6543CC2CDABF8900BFD3D8 /* Build configuration list for PBXProject "DemoIDMission" */;
-			compatibilityVersion = "Xcode 13.0";
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
